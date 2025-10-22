@@ -1,0 +1,28 @@
+{
+  "algorithm_id": "keyword-only",
+  "version": "1.0",
+  "name": "Keyword Search Only",
+  "components": [
+    {
+      "type": "keyword_search",
+      "name": "basic_keyword",
+      "enabled": true,
+      "config": {
+        "fields": [
+          "title^3",
+          "description",
+          "tags^2"
+        ],
+        "operator": "or",
+        "minimum_should_match": "75%",
+        "size": 10
+      }
+    }
+  ],
+  "metadata": {
+    "created_by": "system",
+    "status": "production",
+    "description": "Basic keyword search using multi_match query",
+    "tags": ["baseline", "keyword"]
+  }
+}
