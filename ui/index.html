@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Orchestrator - Search Testing Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .search-panel {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4a90e2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #357abd;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .algorithm-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .algorithm-card {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .algorithm-card:hover {
+            border-color: #4a90e2;
+        }
+
+        .algorithm-card.selected {
+            border-color: #4a90e2;
+            background: #f0f7ff;
+        }
+
+        .algorithm-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .algorithm-description {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        .result-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .result-header {
+            padding: 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .result-metadata {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .result-list {
+            padding: 16px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-rank {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #4a90e2;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .result-score {
+            float: right;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .result-content {
+            margin-top: 8px;
+        }
+
+        .result-field {
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .field-label {
+            font-weight: 600;
+            color: #666;
+            margin-right: 4px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            color: #c00;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .api-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+
+        .api-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .api-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                Query Orchestrator
+                <span class="api-status" id="apiStatus">Checking...</span>
+            </h1>
+            <p class="subtitle">Internal tool for Search team query orchestration and comparison</p>
+        </header>
+
+        <div class="search-panel">
+            <div class="search-input-group">
+                <input
+                    type="text"
+                    class="search-input"
+                    id="queryInput"
+                    placeholder="Enter your search query..."
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button class="btn btn-primary" onclick="executeSearch()">Search</button>
+                <button class="btn btn-secondary" onclick="loadAlgorithms()">Refresh Algorithms</button>
+            </div>
+
+            <div id="algorithmSelector" class="algorithm-selector">
+                <div class="loading">Loading algorithms...</div>
+            </div>
+
+            <div id="errorContainer"></div>
+        </div>
+
+        <div id="resultsContainer" class="results-container">
+            <div class="empty-state">
+                <h2>No results yet</h2>
+                <p>Select one or more algorithms and enter a search query to get started</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api/v1';
+        let algorithms = [];
+        let selectedAlgorithms = new Set();
+
+        // Check API health on load
+        async function checkApiHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                const statusEl = document.getElementById('apiStatus');
+
+                if (data.elasticsearch_connected) {
+                    statusEl.textContent = 'Connected';
+                    statusEl.className = 'api-status connected';
+                } else {
+                    statusEl.textContent = 'ES Disconnected';
+                    statusEl.className = 'api-status disconnected';
+                }
+            } catch (error) {
+                const statusEl = document.getElementById('apiStatus');
+                statusEl.textContent = 'API Offline';
+                statusEl.className = 'api-status disconnected';
+            }
+        }
+
+        // Load available algorithms
+        async function loadAlgorithms() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/algorithms`);
+                algorithms = await response.json();
+
+                const container = document.getElementById('algorithmSelector');
+
+                if (algorithms.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No algorithms found</div>';
+                    return;
+                }
+
+                container.innerHTML = algorithms.map(algo => `
+                    <div class="algorithm-card" onclick="toggleAlgorithm('${algo.algorithm_id}')">
+                        <div class="algorithm-name">${algo.name}</div>
+                        <div class="algorithm-description">${algo.metadata.description || ''}</div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                showError('Failed to load algorithms: ' + error.message);
+            }
+        }
+
+        // Toggle algorithm selection
+        function toggleAlgorithm(algorithmId) {
+            if (selectedAlgorithms.has(algorithmId)) {
+                selectedAlgorithms.delete(algorithmId);
+            } else {
+                selectedAlgorithms.add(algorithmId);
+            }
+            updateAlgorithmUI();
+        }
+
+        // Update algorithm card selection state
+        function updateAlgorithmUI() {
+            const cards = document.querySelectorAll('.algorithm-card');
+            cards.forEach((card, index) => {
+                const algo = algorithms[index];
+                if (selectedAlgorithms.has(algo.algorithm_id)) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+        }
+
+        // Execute search
+        async function executeSearch() {
+            const query = document.getElementById('queryInput').value.trim();
+
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+
+            if (selectedAlgorithms.size === 0) {
+                showError('Please select at least one algorithm');
+                return;
+            }
+
+            clearError();
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '<div class="loading">Searching...</div>';
+
+            try {
+                const results = await Promise.all(
+                    Array.from(selectedAlgorithms).map(algorithmId =>
+                        searchWithAlgorithm(query, algorithmId)
+                    )
+                );
+
+                displayResults(results);
+
+            } catch (error) {
+                showError('Search failed: ' + error.message);
+                resultsContainer.innerHTML = '';
+            }
+        }
+
+        // Search with a specific algorithm
+        async function searchWithAlgorithm(query, algorithmId) {
+            const response = await fetch(`${API_BASE_URL}/search`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query,
+                    algorithm_id: algorithmId,
+                    parallel: true
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        // Display search results
+        function displayResults(results) {
+            const container = document.getElementById('resultsContainer');
+
+            if (results.length === 0) {
+                container.innerHTML = '<div class="empty-state">No results</div>';
+                return;
+            }
+
+            container.innerHTML = results.map(result => {
+                const algo = algorithms.find(a => a.algorithm_id === result.algorithm_id);
+
+                return `
+                    <div class="result-panel">
+                        <div class="result-header">
+                            <div class="result-title">${algo.name}</div>
+                            <div class="result-metadata">
+                                <span>${result.total} results</span>
+                                <span>${Math.round(result.took_ms)}ms</span>
+                                <span>${result.metadata.num_blocks || 0} blocks</span>
+                            </div>
+                        </div>
+                        <div class="result-list">
+                            ${result.hits.map(hit => renderResult(hit)).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render a single result
+        function renderResult(hit) {
+            const fields = Object.entries(hit.source)
+                .filter(([key]) => !key.startsWith('_') && key !== 'embedding_vector')
+                .slice(0, 3)
+                .map(([key, value]) => `
+                    <div class="result-field">
+                        <span class="field-label">${key}:</span>
+                        <span>${truncate(String(value), 100)}</span>
+                    </div>
+                `).join('');
+
+            return `
+                <div class="result-item">
+                    <span class="result-rank">${hit.rank}</span>
+                    <span class="result-score">Score: ${hit.score.toFixed(3)}</span>
+                    <div class="result-content">
+                        ${fields}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Utility functions
+        function truncate(str, maxLength) {
+            if (str.length <= maxLength) return str;
+            return str.substring(0, maxLength) + '...';
+        }
+
+        function showError(message) {
+            const container = document.getElementById('errorContainer');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function clearError() {
+            document.getElementById('errorContainer').innerHTML = '';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                executeSearch();
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            checkApiHealth();
+            loadAlgorithms();
+        });
+    </script>
+</body>
+</html>

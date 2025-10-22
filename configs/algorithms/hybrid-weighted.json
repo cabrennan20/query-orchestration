@@ -1,0 +1,50 @@
+{
+  "algorithm_id": "hybrid-weighted",
+  "version": "1.0",
+  "name": "Hybrid Search with Weighted Merge",
+  "components": [
+    {
+      "type": "keyword_search",
+      "name": "keyword_component",
+      "enabled": true,
+      "config": {
+        "fields": [
+          "title^3",
+          "description",
+          "tags^2"
+        ],
+        "operator": "or",
+        "size": 20
+      }
+    },
+    {
+      "type": "vector_search",
+      "name": "vector_component",
+      "enabled": true,
+      "config": {
+        "field": "embedding_vector",
+        "k": 20,
+        "num_candidates": 100
+      }
+    },
+    {
+      "type": "merge",
+      "name": "weighted_merger",
+      "enabled": true,
+      "config": {
+        "strategy": "weighted",
+        "weights": {
+          "0": 0.4,
+          "1": 0.6
+        },
+        "max_results": 10
+      }
+    }
+  ],
+  "metadata": {
+    "created_by": "system",
+    "status": "testing",
+    "description": "Combines keyword and vector search with 40/60 weighting favoring semantic",
+    "tags": ["hybrid", "weighted", "testing"]
+  }
+}

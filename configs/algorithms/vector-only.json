@@ -1,0 +1,24 @@
+{
+  "algorithm_id": "vector-only",
+  "version": "1.0",
+  "name": "Vector Search Only",
+  "components": [
+    {
+      "type": "vector_search",
+      "name": "semantic_search",
+      "enabled": true,
+      "config": {
+        "field": "embedding_vector",
+        "k": 10,
+        "num_candidates": 100,
+        "similarity": "cosine"
+      }
+    }
+  ],
+  "metadata": {
+    "created_by": "system",
+    "status": "production",
+    "description": "Semantic search using kNN vector similarity",
+    "tags": ["semantic", "vector"]
+  }
+}

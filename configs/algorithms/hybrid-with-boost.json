@@ -1,0 +1,56 @@
+{
+  "algorithm_id": "hybrid-with-boost",
+  "version": "1.0",
+  "name": "Hybrid Search with Popularity Boost",
+  "components": [
+    {
+      "type": "keyword_search",
+      "name": "keyword_component",
+      "enabled": true,
+      "config": {
+        "fields": [
+          "title^3",
+          "description",
+          "tags^2"
+        ],
+        "operator": "or",
+        "size": 20
+      }
+    },
+    {
+      "type": "vector_search",
+      "name": "vector_component",
+      "enabled": true,
+      "config": {
+        "field": "embedding_vector",
+        "k": 20,
+        "num_candidates": 100
+      }
+    },
+    {
+      "type": "merge",
+      "name": "rrf_merger",
+      "enabled": true,
+      "config": {
+        "strategy": "rrf",
+        "k": 60,
+        "max_results": 20
+      }
+    },
+    {
+      "type": "rerank",
+      "name": "popularity_boost",
+      "enabled": true,
+      "config": {
+        "boost_by_field": "popularity_score",
+        "weight": 0.3
+      }
+    }
+  ],
+  "metadata": {
+    "created_by": "system",
+    "status": "testing",
+    "description": "Hybrid search with RRF plus popularity-based re-ranking",
+    "tags": ["hybrid", "rrf", "boost", "personalization"]
+  }
+}
